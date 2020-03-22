@@ -16,7 +16,7 @@ class Move {
         this.isPlayerTurn = this.pickUpPlayerSide = isPlayerTurn;
         this.changes = null;
 
-        score = isPlayerTurn ? Integer.MIN_VALUE / 4 : Integer.MAX_VALUE / 2;
+        score = isPlayerTurn ? Integer.MIN_VALUE / 2 : Integer.MAX_VALUE / 2;
     }
 
     public void delta(int absPos, int count) {

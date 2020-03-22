@@ -13,7 +13,7 @@ class Main {
         int maxDepth = 9;
         int maxMoves = 4;
 
-        board = new AvalancheBoard(rows = 6, pebbleCount);
+        board = new CaptureBoard(rows = 6, pebbleCount);
 
         boolean isEnterBoard = false;
         enterBoard(isEnterBoard);
@@ -21,15 +21,18 @@ class Main {
         core = new Core(board, maxDepth, maxMoves);
         System.out.println(board);
 
-        boolean isPlayerFirst = true;
+        boolean isPlayerFirst = false;
 
         if (isPlayerFirst) {
-            playerTurn();
+            playerTurn(false);
         }
         while (!board.isGameOver()) {
 
-            cpuTurn();
-            playerTurn();
+            cpuTurn(true);
+
+            if (board.isGameOver())
+                break;
+            playerTurn(false);
 
         }
         System.out.println(board.isWin() ? "Victory!!" : "Shame on my family...");
@@ -52,16 +55,16 @@ class Main {
         }
     }
 
-    public static void cpuTurn() {
+    public static void cpuTurn(boolean isLefty) {
         Move cpuMove;
         int movesMade = 0;
         do {
-            cpuMove = core.move(true, movesMade++);
+            cpuMove = core.move(isLefty, movesMade++);
             board.execute(cpuMove);
             System.out.println("CPU Move: " + cpuMove.firstPos);
             // System.out.println(board);
         } while (cpuMove.nextTurn == cpuMove.isPlayerTurn);
-        int score = cpuMove.score;
+        int score = cpuMove.score * (isLefty ? 1 : -1);
         if (score > 9000) {
             System.out.println("Win in sight!");
             score -= 10000;
@@ -74,12 +77,12 @@ class Main {
         System.out.println(board);
     }
 
-    public static void playerTurn() {
+    public static void playerTurn(boolean isLefty) {
         Move userMove;
         System.out.println("Start Turn: What would you like to move (start at 0)?");
         do {
             int userPos = scan.nextInt();
-            userMove = board.move(userPos, false);
+            userMove = board.move(userPos, isLefty);
             System.out.println(board);
             if (userMove.nextTurn == userMove.isPlayerTurn) {
                 System.out.println("FREE Turn: What would you like to move?");

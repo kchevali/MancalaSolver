@@ -47,7 +47,7 @@ class Core {
     }
 
     public int punishment(boolean isPlayerTurn) {
-        return isPlayerTurn ? Integer.MIN_VALUE / 2 : Integer.MAX_VALUE / 2;
+        return isPlayerTurn ? Integer.MIN_VALUE / 4 : Integer.MAX_VALUE / 4;
     }
 
     public Move compare(Move a, Move b) {
