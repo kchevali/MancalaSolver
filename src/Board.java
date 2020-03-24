@@ -1,13 +1,15 @@
+import java.util.*;
+
 class Board {
 
     // 0 -> (totalSpaces-1) : board
-    // totalSpaces : playerScore | totalSpaces + 1 : otherScore
+    // totalSpaces : AlphaScore | totalSpaces + 1 : betaScore
     int[] spaces;
-    int rows, totalSpaces, playerGoal, otherGoal;
+    int rows, totalSpaces, alphaGoal, betaGoal;
     int allPebbleCount;
 
-    // player: top -> bottom
-    // other: bottom -> top
+    // Alpha: top -> bottom
+    // beta: bottom -> top
 
     public Board(int rows, int pebbleCount) {
         this.rows = rows;
@@ -18,23 +20,38 @@ class Board {
             spaces[i] = pebbleCount;
         }
 
-        this.playerGoal = rows;
-        this.otherGoal = totalSpaces - 1;
+        this.alphaGoal = rows;
+        this.betaGoal = totalSpaces - 1;
 
-        this.spaces[playerGoal] = this.spaces[otherGoal] = 0;// score
+        this.spaces[alphaGoal] = this.spaces[betaGoal] = 0;// score
         this.allPebbleCount = pebbleCount * this.rows * 2;
     }
 
-    public Move createMove(int pos, boolean isPlayerTurn) {
-        return new Move(pos, isPlayerTurn, totalSpaces);
+    public Move createMove(int pos, boolean isAlphaTurn) {
+        return new Move(pos, isAlphaTurn, totalSpaces);
+    }
+
+    public void randomize() {
+        int length = rows * 2;
+        int[] nums = new int[length + 1];
+        nums[0] = 0;
+        nums[length] = allPebbleCount;
+        for (int i = 1; i < length; i++)
+            nums[i] = (int) (Math.random() * (allPebbleCount + 1));
+        Arrays.sort(nums);
+        for (int i = 0, pos = 0; i < length; i++, pos++) {
+            if (pos == alphaGoal)
+                pos++;
+            spaces[pos] = nums[i + 1] - nums[i];
+        }
     }
 
     public int acrossIndex(int absPos) {
         return totalSpaces - absPos - 2;
     }
 
-    public Move move(int pos, boolean isPlayerTurn) {
-        Move move = createMove(pos, isPlayerTurn);
+    public Move move(int pos, boolean isAlphaTurn) {
+        Move move = createMove(pos, isAlphaTurn);
         coreMove(move);
         setNextTurn(move);
         return move;
@@ -50,10 +67,10 @@ class Board {
         int pebbles = spaces[absPos];
         step(move, absPos, -pebbles);
 
-        absPos = nextPosition(move.isPlayerTurn, absPos);
+        absPos = nextPosition(move.isAlphaTurn, absPos);
         for (int i = 0; i < pebbles; i++) {
             step(move, absPos, 1);
-            absPos = nextPosition(move.isPlayerTurn, absPos);
+            absPos = nextPosition(move.isAlphaTurn, absPos);
         }
     }
 
@@ -78,13 +95,13 @@ class Board {
         }
     }
 
-    public int nextPosition(boolean isPlayerTurn, int pos) {
-        pos += (isPlayerTurn && pos == otherGoal - 1) || (!isPlayerTurn && pos == playerGoal - 1) ? 2 : 1;
+    public int nextPosition(boolean isAlphaTurn, int pos) {
+        pos += (isAlphaTurn && pos == betaGoal - 1) || (!isAlphaTurn && pos == alphaGoal - 1) ? 2 : 1;
         return pos - (pos >= totalSpaces ? totalSpaces : 0);
     }
 
-    public int prevPosition(boolean isPlayerTurn, int pos) {
-        pos -= (isPlayerTurn && pos == 0) || (!isPlayerTurn && pos == playerGoal + 1) ? 2 : 1;
+    public int prevPosition(boolean isAlphaTurn, int pos) {
+        pos -= (isAlphaTurn && pos == 0) || (!isAlphaTurn && pos == alphaGoal + 1) ? 2 : 1;
         return pos + (pos < 0 ? totalSpaces : 0);
 
     }
@@ -106,32 +123,45 @@ class Board {
     }
 
     public boolean isGameOver() {
-        return isSideEmpty(0, playerGoal) || isSideEmpty(playerGoal + 1, otherGoal);
+        return isSideEmpty(0, alphaGoal) || isSideEmpty(alphaGoal + 1, betaGoal);
     }
 
     public int getScore(boolean isGameOver) {
-        int maxPlayerScore = spaces[playerGoal] + getPebbles(0, playerGoal);
-        int maxOtherScore = spaces[otherGoal] + getPebbles(playerGoal + 1, otherGoal);
-        int gameOverScore = maxPlayerScore - maxOtherScore + (2 * maxPlayerScore > allPebbleCount ? 10000 : -10000);
-        return isGameOver ? gameOverScore : spaces[playerGoal] - spaces[otherGoal];
+        int maxAlphaScore = spaces[alphaGoal] + getPebbles(0, alphaGoal);
+        int maxBetaScore = spaces[betaGoal] + getPebbles(alphaGoal + 1, betaGoal);
+        int gameOverScore = maxAlphaScore - maxBetaScore + (2 * maxAlphaScore > allPebbleCount ? 10000 : -10000);
+        return isGameOver ? gameOverScore : spaces[alphaGoal] - spaces[betaGoal];
+    }
+
+    public void addUpBoard() {
+        spaces[alphaGoal] += getPebbles(0, alphaGoal);
+        spaces[betaGoal] += getPebbles(alphaGoal + 1, betaGoal);
+        for (int i = 0; i < totalSpaces; i++) {
+            if (i != alphaGoal && i != betaGoal)
+                spaces[i] = 0;
+        }
     }
 
     public boolean isWin() {
-        int maxPlayerScore = spaces[playerGoal] + getPebbles(0, playerGoal);
-        return 2 * maxPlayerScore >= allPebbleCount;
+        int maxAlphaScore = spaces[alphaGoal] + getPebbles(0, alphaGoal);
+        return 2 * maxAlphaScore >= allPebbleCount;
     }
 
     public boolean isAtGoal(int lastMove) {
-        return lastMove == playerGoal || lastMove == otherGoal;
+        return lastMove == alphaGoal || lastMove == betaGoal;
+    }
+
+    public int getAbsolutePosition(int pos, boolean pickUpAlphaSide) {
+        return pos + (pickUpAlphaSide ? 0 : (rows + 1));
     }
 
     public int getAbsolutePosition(Move move) {
-        return move.pos + (move.pickUpPlayerSide ? 0 : (rows + 1));
+        return getAbsolutePosition(move.pos, move.pickUpAlphaSide);
     }
 
     public void setRelativePosition(Move move, int absPos) {
-        move.pickUpPlayerSide = absPos < playerGoal;
-        move.pos = absPos - (move.pickUpPlayerSide ? 0 : playerGoal + 1);
+        move.pickUpAlphaSide = absPos < alphaGoal;
+        move.pos = absPos - (move.pickUpAlphaSide ? 0 : alphaGoal + 1);
     }
 
     public String format(int num) {
@@ -140,11 +170,11 @@ class Board {
 
     public String toString() {
         StringBuilder b = new StringBuilder();
-        b.append(" -").append(spaces[otherGoal]).append("-\n");
+        b.append(" -").append(spaces[betaGoal]).append("-\n");
         for (int i = 0; i < rows; i++) {
-            b.append(format(spaces[i])).append(" ").append(format(spaces[playerGoal + rows - i])).append("\n");
+            b.append(format(spaces[i])).append(" ").append(format(spaces[alphaGoal + rows - i])).append("\n");
         }
-        b.append(" -").append(spaces[playerGoal]).append("-\n");
+        b.append(" -").append(spaces[alphaGoal]).append("-\n");
         return b.toString();
     }
 }

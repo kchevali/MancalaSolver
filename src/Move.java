@@ -3,20 +3,20 @@ class Move {
     int firstPos, pos, lastMove;// relative position
     int score;
     int[] changes;
-    boolean isPlayerTurn, nextTurn, pickUpPlayerSide;
+    boolean isAlphaTurn, nextTurn, pickUpAlphaSide;
 
-    public Move(int pos, boolean isPlayerTurn, int length) {
+    public Move(int pos, boolean isAlphaTurn, int length) {
         this.firstPos = this.pos = this.lastMove = pos;
-        this.isPlayerTurn = this.pickUpPlayerSide = isPlayerTurn;
+        this.isAlphaTurn = this.pickUpAlphaSide = isAlphaTurn;
         this.changes = new int[length];
     }
 
-    public Move(boolean isPlayerTurn) {
+    public Move(boolean isAlphaTurn, int score) {
         this.pos = this.lastMove = -1;
-        this.isPlayerTurn = this.pickUpPlayerSide = isPlayerTurn;
+        this.isAlphaTurn = this.pickUpAlphaSide = isAlphaTurn;
         this.changes = null;
 
-        score = isPlayerTurn ? Integer.MIN_VALUE / 2 : Integer.MAX_VALUE / 2;
+        this.score = score;
     }
 
     public void delta(int absPos, int count) {
@@ -29,7 +29,7 @@ class Move {
     }
 
     public void setNextTurn(boolean isAtGoal) {
-        this.nextTurn = (isPlayerTurn == isAtGoal);
+        this.nextTurn = (isAlphaTurn == isAtGoal);
     }
 
 }

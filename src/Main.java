@@ -9,11 +9,14 @@ class Main {
     static int rows;
 
     public static void main(String[] args) {
-        int pebbleCount = 4;
-        int maxDepth = 9;
-        int maxMoves = 4;
+        int pebbleCount = 4;// number of pebbles per space
+        int maxDepth = 13; // max search depth
+        int maxMoves = Integer.MAX_VALUE;// 4 //handicaps cpu so it doesn't seem like you are cheating when you are
+                                         // playing
+        // your friends
 
-        board = new CaptureBoard(rows = 6, pebbleCount);
+        board = new CaptureBoard(rows = 6, pebbleCount);// May replace with AvalancheBoard
+        board.randomize();
 
         boolean isEnterBoard = false;
         enterBoard(isEnterBoard);
@@ -22,21 +25,27 @@ class Main {
         System.out.println(board);
 
         boolean isPlayerFirst = false;
+        boolean alpha = true;
 
         if (isPlayerFirst) {
-            playerTurn(false);
+            System.out.println("Beta:");
+            playerTurn(!alpha);
         }
         while (!board.isGameOver()) {
-
-            cpuTurn(true);
+            System.out.println("\n=========================================");
+            System.out.println("Alpha:");
+            cpuTurn(alpha);
 
             if (board.isGameOver())
                 break;
-            playerTurn(false);
+            System.out.println("Beta:");
+            cpuTurn(!alpha);
 
         }
-        System.out.println(board.isWin() ? "Victory!!" : "Shame on my family...");
+        System.out.println(board.isWin() ? "Alpha Wins!!" : "Beta is Victorious!");
         // core.testMove(true);
+        board.addUpBoard();
+        System.out.println(board);
         scan.close();
     }
 
@@ -49,9 +58,9 @@ class Main {
                 board.spaces[across] = scan.nextInt();
             }
             System.out.println("Player Score");
-            board.spaces[board.playerGoal] = scan.nextInt();
+            board.spaces[board.alphaGoal] = scan.nextInt();
             System.out.println("Other Score");
-            board.spaces[board.otherGoal] = scan.nextInt();
+            board.spaces[board.betaGoal] = scan.nextInt();
         }
     }
 
@@ -63,7 +72,7 @@ class Main {
             board.execute(cpuMove);
             System.out.println("CPU Move: " + cpuMove.firstPos);
             // System.out.println(board);
-        } while (cpuMove.nextTurn == cpuMove.isPlayerTurn);
+        } while (cpuMove.nextTurn == cpuMove.isAlphaTurn);
         int score = cpuMove.score * (isLefty ? 1 : -1);
         if (score > 9000) {
             System.out.println("Win in sight!");
@@ -81,12 +90,21 @@ class Main {
         Move userMove;
         System.out.println("Start Turn: What would you like to move (start at 0)?");
         do {
-            int userPos = scan.nextInt();
+            int userPos;
+            boolean check;
+            do {
+                userPos = scan.nextInt();
+                int absPos = 0;
+                if (check = (userPos >= 0 && userPos < rows))
+                    absPos = board.getAbsolutePosition(userPos, isLefty);
+                if (check = check && board.spaces[absPos] <= 0)
+                    System.out.println("Invalid space!");
+            } while (check);
             userMove = board.move(userPos, isLefty);
             System.out.println(board);
-            if (userMove.nextTurn == userMove.isPlayerTurn) {
+            if (userMove.nextTurn == userMove.isAlphaTurn) {
                 System.out.println("FREE Turn: What would you like to move?");
             }
-        } while (userMove.nextTurn == userMove.isPlayerTurn);
+        } while (userMove.nextTurn == userMove.isAlphaTurn);
     }
 }

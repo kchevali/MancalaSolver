@@ -9,14 +9,14 @@ class CaptureBoard extends Board {
         if (isAtGoal(move.lastMove))
             return;
 
-        boolean isHomeSide = move.isPlayerTurn == (move.lastMove < playerGoal);
+        boolean isHomeSide = move.isAlphaTurn == (move.lastMove < alphaGoal);
         int lastMove = move.lastMove;
         int across = acrossIndex(lastMove);
         if (isHomeSide && spaces[move.lastMove] == 1 && spaces[across] > 0) {
             int winning = spaces[across] + 1;
             step(move, lastMove, -1);
             step(move, across, -spaces[across]);
-            step(move, move.isPlayerTurn ? playerGoal : otherGoal, winning);
+            step(move, move.isAlphaTurn ? alphaGoal : betaGoal, winning);
             move.lastMove = lastMove;
         }
     }
