@@ -15,10 +15,10 @@ class Main {
                                          // playing
         // your friends
 
-        board = new CaptureBoard(rows = 6, pebbleCount);// May replace with AvalancheBoard
-        board.randomize();
+        board = new AvalancheBoard(rows = 6, pebbleCount);// May replace with AvalancheBoard
+        // board.randomize();
 
-        boolean isEnterBoard = false;
+        boolean isEnterBoard = true;
         enterBoard(isEnterBoard);
 
         core = new Core(board, maxDepth, maxMoves);
@@ -39,7 +39,7 @@ class Main {
             if (board.isGameOver())
                 break;
             System.out.println("Beta:");
-            cpuTurn(!alpha);
+            playerTurn(!alpha);
 
         }
         System.out.println(board.isWin() ? "Alpha Wins!!" : "Beta is Victorious!");
@@ -51,9 +51,9 @@ class Main {
 
     public static void enterBoard(boolean isEnterBoard) {
         if (isEnterBoard) {
+            System.out.println("Next Row");
             for (int i = 0; i < rows; i++) {
                 int across = board.acrossIndex(i);
-                System.out.println("Next Row");
                 board.spaces[i] = scan.nextInt();
                 board.spaces[across] = scan.nextInt();
             }
